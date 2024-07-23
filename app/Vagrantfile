@@ -1,0 +1,31 @@
+# app/Vagrantfile
+
+Vagrant.configure("2") do |config|
+  config.vm.define "app_server" do |vm|
+    vm.vm.box = "ubuntu/focal64"
+  
+    vm.disksize.size = "20GB"
+    vm.vm.network "private_network", ip: "192.168.50.2"
+    vm.vm.network "forwarded_port", guest: 22, host: 2002, id: "ssh", auto_correct: true
+    vm.vm.network "forwarded_port", guest: 80, host: 9090
+    vm.vm.network "public_network", bridge: "en1: Wi-Fi (AirPort)"
+    
+    vm.vm.provider "virtualbox" do |vb|
+	    vb.memory = "1024"
+      vb.cpus = 1
+    end
+
+    vm.vm.provision "shell", inline: <<-SHELL
+       # Mise à jour des paquets
+      sudo apt update
+      
+      # Installation de Docker
+      sudo apt-get install -y docker.io
+      
+      # Installation de Docker Compose
+      sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      sudo chmod +x /usr/local/bin/docker-compose
+    
+    SHELL
+  end
+end
